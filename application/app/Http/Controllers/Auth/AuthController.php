@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Authy\Service;
@@ -16,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\View\View;
 use LogicException;
@@ -129,6 +132,7 @@ class AuthController extends Controller
             );
         }
 
+        DB::beginTransaction();
         try {
             $user = Sentinel::registerAndActivate($request->all());
             if (false === $user instanceof UserInterface) {
@@ -148,8 +152,11 @@ class AuthController extends Controller
                 $message = "You will receive an SMS with the verification code";
             }
 
+            DB::commit();
+
             return redirect('/auth/two-factor')->with('message', $message);
         } catch (Exception $exception) {
+            DB::rollBack();
             Session::flash('message', 'Error, please try again.');
 
             return redirect()->away('/auth/register');

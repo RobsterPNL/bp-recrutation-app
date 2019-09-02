@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -13,6 +15,7 @@ use Illuminate\Foundation\Auth\ResetsPasswords;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Message;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use LogicException;
@@ -65,6 +68,7 @@ class PasswordController extends Controller
             return redirect()->back()->withInput();
         }
 
+        DB::beginTransaction();
         try {
             /** @var EloquentReminder $reminder */
             $reminder = Reminder::exists($user) ?: Reminder::create($user);
@@ -73,30 +77,17 @@ class PasswordController extends Controller
                 throw new LogicException('Can\'t send email!');
             }
 
+            DB::commit();
+
             Session::flash('message', 'If your email is in our database, a password reset link has been sent to it.');
 
             return redirect()->back();
         } catch (Throwable $e) {
+            DB::rollBack();
             Session::flash('message', 'Error, please try again.');
 
             return redirect()->back()->withInput();
         }
-    }
-
-    /**
-     * @param UserInterface $user
-     * @param string $code
-     *
-     * @return bool
-     */
-    private function sentEmail(UserInterface $user, string $code): bool
-    {
-        return (bool)Mail::send('emails.password', ['code' => $code], function (Message $message) use ($user) {
-            $message
-                ->to($user->email)
-                ->subject('Reset account password');
-        });
-
     }
 
     /**
@@ -131,5 +122,21 @@ class PasswordController extends Controller
         Session::flash('message', 'Your password was changed successfully!');
 
         return redirect()->away('/auth/login');
+    }
+
+    /**
+     * @param UserInterface $user
+     * @param string $code
+     *
+     * @return bool
+     */
+    private function sentEmail(UserInterface $user, string $code): bool
+    {
+        return (bool) Mail::send('emails.password', ['code' => $code], function (Message $message) use ($user) {
+            $message
+                ->to($user->email)
+                ->subject('Reset account password');
+        });
+
     }
 }
