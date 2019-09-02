@@ -1,0 +1,19 @@
+{
+  "name": "2FA in Laravel 5 with Authy",
+  "description": "Two Factor Authentication in Laravel 5 with Authy",
+  "website": "https://www.twilio.com/docs/howto/walkthrough/two-factor-authentication/php/laravel",
+  "repository": "https://github.com/TwilioDevEd/authy2fa-laravel",
+  "logo": "https://s3.amazonaws.com/howtodocs/twilio-logo.png",
+  "success_url": "/landing.html",
+  "keywords": ["twilio", "PHP", "laravel", "MMS"],
+  "addons": ["heroku-postgresql:hobby-dev"],
+  "env": {
+    "AUTHY_API_KEY": {
+      "description": "Your Authy authentication token",
+      "required": true
+    }
+  },
+  "scripts": {
+    "postdeploy": "php artisan migrate --force"
+  }
+}
