@@ -5,8 +5,7 @@ namespace App\Model;
 use Cartalyst\Sentinel\Users\EloquentUser;
 
 /**
- * Class CustomUser
- * @package App\Model
+ * @author Robert Matuszewski <robmatu@gmail.com>
  */
 class CustomUser extends EloquentUser
 {

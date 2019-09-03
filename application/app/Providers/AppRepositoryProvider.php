@@ -4,8 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Providers;
 
-use App\Model\OneTouchRepository;
 use App\Model\OneTouchRepositoryInterface;
+use App\Repositories\OneTouchRepository;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -18,9 +18,6 @@ class AppRepositoryProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(
-            OneTouchRepositoryInterface::class,
-            OneTouchRepository::class
-        );
+        $this->app->bind(OneTouchRepositoryInterface::class, OneTouchRepository::class);
     }
 }

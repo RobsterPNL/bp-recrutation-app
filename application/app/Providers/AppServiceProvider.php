@@ -1,39 +1,29 @@
-<?php namespace App\Providers;
+<?php
 
+declare(strict_types = 1);
+
+namespace App\Providers;
+
+use App\Model\RegistrationServiceInterface;
+use App\Model\ReminderServiceInterface;
+use App\Services\RegistrationService;
+use App\Services\ReminderService;
 use Illuminate\Support\ServiceProvider;
 
-class AppServiceProvider extends ServiceProvider {
-
-	/**
-	 * Bootstrap any application services.
-	 *
-	 * @return void
-	 */
-	public function boot()
-	{
-		//
-	}
-
-	/**
-	 * Register any application services.
-	 *
-	 * This service provider is a great spot to register your various container
-	 * bindings with the application. As you can see, we are registering our
-	 * "Registrar" implementation here. You can add your own bindings too!
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->app->bind(
-			'Illuminate\Contracts\Auth\Registrar',
-			'App\Services\Registrar'
-		);
-
-        $this->app->bind(
-            'App\Authy\Service',
-            'App\Services\Authy'
-        );
-	}
+/**
+ * @author Robert Matuszewski <robmatu@gmail.com>
+ */
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * @return void
+     */
+    public function register(): void
+    {
+        $this->app->bind('Illuminate\Contracts\Auth\Registrar', 'App\Services\Registrar');
+        $this->app->bind('App\Authy\Service', 'App\Services\Authy');
+        $this->app->bind(RegistrationServiceInterface::class, RegistrationService::class);
+        $this->app->bind(ReminderServiceInterface::class, ReminderService::class);
+    }
 
 }

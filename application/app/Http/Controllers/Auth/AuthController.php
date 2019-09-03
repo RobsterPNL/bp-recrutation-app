@@ -6,12 +6,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Authy\Service;
 use App\Http\Controllers\Controller;
+use App\Model\RegistrationServiceInterface;
 use App\Repositories\OneTouchRepository;
+use App\Services\RegistrationService;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Cartalyst\Sentinel\Users\UserInterface;
 use Exception;
 use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Contracts\Auth\Registrar;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
 use Illuminate\Http\JsonResponse;
@@ -21,7 +22,6 @@ use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\View\View;
-use LogicException;
 
 /**
  * @author Robert Matuszewski <robmatu@gmail.com>
@@ -36,11 +36,6 @@ class AuthController extends Controller
     private $auth;
 
     /**
-     * @var Registrar
-     */
-    private $registrar;
-
-    /**
      * @var Service
      */
     private $authy;
@@ -51,21 +46,26 @@ class AuthController extends Controller
     private $oneTouchRepository;
 
     /**
+     * @var RegistrationServiceInterface
+     */
+    private $registrationService;
+
+    /**
      * @param Guard $auth
-     * @param Registrar $registrar
      * @param Service $authy
      * @param OneTouchRepository $oneTouchRepository
+     * @param RegistrationService $registrationService
      */
     public function __construct(
         Guard $auth,
-        Registrar $registrar,
         Service $authy,
-        OneTouchRepository $oneTouchRepository
+        OneTouchRepository $oneTouchRepository,
+        RegistrationService $registrationService
     ) {
         $this->auth = $auth;
-        $this->registrar = $registrar;
         $this->authy = $authy;
         $this->oneTouchRepository = $oneTouchRepository;
+        $this->registrationService = $registrationService;
     }
 
     /**
@@ -133,37 +133,21 @@ class AuthController extends Controller
      */
     public function postRegister(Request $request): RedirectResponse
     {
-        $validator = $this->registrar->validator($request->all());
-
-        if ($validator->fails()) {
-            $this->throwValidationException(
-                $request, $validator
-            );
-        }
+        $this->validate($request, [
+            'first_name' => 'required|max:50',
+            'last_name' => 'required|max:50',
+            'email' => 'required|email|max:255|unique:users',
+            'country_code' => 'required',
+            'phone_number' => 'required|min:7|unique:users',
+            'password' => 'required|confirmed|min:6',
+        ]);
 
         DB::beginTransaction();
         try {
-            $user = Sentinel::registerAndActivate($request->all());
-            if (false === $user instanceof UserInterface) {
-                throw new LogicException();
-            }
-
-            Session::set('password_validated', true);
-            Session::set('id', $user->id);
-
-            $authyId = $this->authy->register($user->email, $user->phone_number, $user->country_code);
-            $user->updateAuthyId($authyId);
-
-            if ($this->authy->verifyUserStatus($authyId)->registered) {
-                $message = "Open Authy app in your phone to see the verification code";
-            } else {
-                $this->authy->sendToken($authyId);
-                $message = "You will receive an SMS with the verification code";
-            }
-
+            $this->registrationService->register($request->all());
             DB::commit();
 
-            return redirect()->route('auth.two.factor')->with('message', $message);
+            return redirect()->route('auth.two.factor');
         } catch (Exception $exception) {
             DB::rollBack();
             Session::flash('message', 'Error, please try again.');
