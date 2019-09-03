@@ -19,19 +19,19 @@ interface Service
     /**
      * Verify if the user is registered in Authy (smartphone app installed)
      *
-     * @param $authy_id
+     * @param $authyId
      * @return mixed
      */
-    public function verifyUserStatus($authy_id);
+    public function verifyUserStatus($authyId);
 
     /**
      * Request a one touch verification
      *
-     * @param $authy_id
+     * @param $authyId
      * @param $message
      * @return string uuid
      */
-    public function sendOneTouch($authy_id, $message);
+    public function sendOneTouch($authyId, $message);
 
     /**
      * Check one touch verification status
@@ -44,17 +44,17 @@ interface Service
     /**
      * Send a verification token to user phone
      *
-     * @param $authy_id
+     * @param $authyId
      * @return bool `true` if token successful sent or ignored
      */
-    public function sendToken($authy_id);
+    public function sendToken($authyId);
 
     /**
      * Request token verification
      *
-     * @param $authy_id
+     * @param $authyId
      * @param $token
      * @return bool `true` if token is valid
      */
-    public function verifyToken($authy_id, $token);
+    public function verifyToken($authyId, $token);
 }

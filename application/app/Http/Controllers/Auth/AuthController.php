@@ -55,8 +55,6 @@ class AuthController extends Controller
         $this->auth = $auth;
         $this->registrar = $registrar;
         $this->authy = $authy;
-
-        $this->middleware('guest', ['except' => 'getLogout']);
     }
 
     /**
@@ -103,19 +101,19 @@ class AuthController extends Controller
     public function postTwoFactor(Request $request)
     {
         if (!Session::get('password_validated') || !Session::get('id') || false === isset($_POST['token'])) {
-            return redirect('/auth/login');
+            return redirect()->route('auth.login');
         }
 
         $user = Sentinel::findById(Session::get('id'));
         if (false === $this->authy->verifyToken($user->authy_id, $request->input('token'))) {
-            return redirect('/auth/two-factor')->withErrors([
+            return redirect()->route('auth.two.factor')->withErrors([
                 'token' => 'The token you entered is incorrect',
             ]);
         }
 
         Sentinel::login($user);
 
-        return redirect()->intended('/home');
+        return redirect()->intended('home');
     }
 
     /**
@@ -142,24 +140,24 @@ class AuthController extends Controller
             Session::set('password_validated', true);
             Session::set('id', $user->id);
 
-            $authy_id = $this->authy->register($user->email, $user->phone_number, $user->country_code);
-            $user->updateAuthyId($authy_id);
+            $authyId = $this->authy->register($user->email, $user->phone_number, $user->country_code);
+            $user->updateAuthyId($authyId);
 
-            if ($this->authy->verifyUserStatus($authy_id)->registered) {
+            if ($this->authy->verifyUserStatus($authyId)->registered) {
                 $message = "Open Authy app in your phone to see the verification code";
             } else {
-                $this->authy->sendToken($authy_id);
+                $this->authy->sendToken($authyId);
                 $message = "You will receive an SMS with the verification code";
             }
 
             DB::commit();
 
-            return redirect('/auth/two-factor')->with('message', $message);
+            return redirect()->route('auth.two.factor')->with('message', $message);
         } catch (Exception $exception) {
             DB::rollBack();
             Session::flash('message', 'Error, please try again.');
 
-            return redirect()->away('/auth/register');
+            return redirect()->route('auth.register');
         }
     }
 
@@ -170,6 +168,6 @@ class AuthController extends Controller
     {
         Sentinel::logout(null, true);
 
-        return redirect('/');
+        return redirect()->route('home');
     }
 }

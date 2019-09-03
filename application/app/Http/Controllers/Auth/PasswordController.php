@@ -46,8 +46,6 @@ class PasswordController extends Controller
     {
         $this->auth = $auth;
         $this->passwords = $passwords;
-
-        $this->middleware('guest');
     }
 
     /**
@@ -116,12 +114,12 @@ class PasswordController extends Controller
         if (false === Reminder::complete($user, $request->token, $request->password)) {
             Session::flash('message', 'Invalid or expire reset token.');
 
-            return redirect()->away('/password/email');
+            return redirect()->route('password.email');
         }
 
         Session::flash('message', 'Your password was changed successfully!');
 
-        return redirect()->away('/auth/login');
+        return redirect()->route('auth.login');
     }
 
     /**
@@ -137,6 +135,5 @@ class PasswordController extends Controller
                 ->to($user->email)
                 ->subject('Reset account password');
         });
-
     }
 }

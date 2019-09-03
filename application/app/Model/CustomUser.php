@@ -24,11 +24,11 @@ class CustomUser extends EloquentUser
     ];
 
     /**
-     * @param $authy_id string
+     * @param $authyId string
      */
-    public function updateAuthyId($authy_id) {
-        if($this->authy_id != $authy_id) {
-            $this->authy_id = $authy_id;
+    public function updateAuthyId($authyId) {
+        if($this->authy_id != $authyId) {
+            $this->authy_id = $authyId;
             $this->save();
         }
     }

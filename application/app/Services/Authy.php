@@ -56,14 +56,14 @@ class Authy implements Service
     }
 
     /**
-     * @param $authy_id
+     * @param $authyId
      * @param $message
      * @return string
      * @throws \Exception
      */
-    public function sendOneTouch($authy_id, $message)
+    public function sendOneTouch($authyId, $message)
     {
-        $response = $this->api->createApprovalRequest($authy_id, $message);
+        $response = $this->api->createApprovalRequest($authyId, $message);
 
         if ($response->ok()) {
             return $response->bodyvar('approval_request')->uuid;
@@ -87,13 +87,13 @@ class Authy implements Service
     }
 
     /**
-     * @param $authy_id
+     * @param $authyId
      * @return bool
      * @throws \Exception
      */
-    public function sendToken($authy_id)
+    public function sendToken($authyId)
     {
-        $response = $this->api->requestSms($authy_id);
+        $response = $this->api->requestSms($authyId);
         if ($response->ok()) {
             return (bool)$response->bodyvar('success');
         }
@@ -101,14 +101,14 @@ class Authy implements Service
     }
 
     /**
-     * @param $authy_id
+     * @param $authyId
      * @param $token
      * @return bool
      * @throws \Exception Nothing will be thrown here
      */
-    public function verifyToken($authy_id, $token)
+    public function verifyToken($authyId, $token)
     {
-        $response = $this->api->verifyToken($authy_id, $token);
+        $response = $this->api->verifyToken($authyId, $token);
 
         if ($response->ok()) {
             return $response->ok();
@@ -117,13 +117,13 @@ class Authy implements Service
     }
 
     /**
-     * @param $authy_id
+     * @param $authyId
      * @return \Authy\value status
      * @throws \Exception if request to api fails
      */
-    public function verifyUserStatus($authy_id)
+    public function verifyUserStatus($authyId)
     {
-        $response = $this->api->userStatus($authy_id);
+        $response = $this->api->userStatus($authyId);
         if ($response->ok()) {
             return $response->bodyvar('status');
         }

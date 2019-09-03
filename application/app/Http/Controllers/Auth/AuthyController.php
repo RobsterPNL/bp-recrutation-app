@@ -17,14 +17,6 @@ use Illuminate\Support\Facades\Session;
 class AuthyController extends Controller
 {
     /**
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('guest');
-    }
-
-    /**
      * @return JsonResponse
      */
     public function status(): JsonResponse
@@ -55,5 +47,4 @@ class AuthyController extends Controller
 
         return "invalid uuid: $uuid";
     }
-
 }

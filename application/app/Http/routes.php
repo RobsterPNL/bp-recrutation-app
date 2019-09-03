@@ -12,16 +12,26 @@
 */
 
 Route::get('/', 'HomeController@index');
-
-Route::get('home', 'HomeController@index');
-
-Route::get('authy/status', 'Auth\AuthyController@status');
-Route::post('authy/callback', ['middleware' => 'validate_authy', 'uses'=>'Auth\AuthyController@callback']);
-
-Route::get('/getUserData', 'API\ApiController@getUserData');
+Route::get('home', 'HomeController@index')->name('home');
+Route::get('getUserData', 'API\ApiController@getUserData');
 
 Route::controllers([
-	'auth' => 'Auth\AuthController',
-	'password' => 'Auth\PasswordController',
-	'api' => 'API\ApiController',
+    'api' => 'API\ApiController',
 ]);
+
+Route::group([], function () {
+    Route::get('auth/logout', 'Auth\AuthController@getLogout')->name('auth.logout');
+    Route::group(['middleware' => 'guest'], function () {
+        Route::get('auth/login', 'Auth\AuthController@getLogin')->name('auth.login');
+        Route::get('auth/two-factor', 'Auth\AuthController@getTwoFactor')->name('auth.two.factor');
+        Route::get('auth/register', 'Auth\AuthController@getRegister')->name('auth.register');
+        Route::get('authy/status', 'Auth\AuthyController@status');
+        Route::get('password/email', 'Auth\PasswordController@getEmail')->name('password.email');
+
+        Route::post('authy/callback', ['middleware' => 'validate_authy', 'uses' => 'Auth\AuthyController@callback']);
+
+        Route::controller('password', 'Auth\PasswordController');
+        Route::controller('auth', 'Auth\AuthController');
+    });
+});
+
