@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Authy\Service;
 use App\Http\Controllers\Controller;
-use App\OneTouch;
+use App\Repositories\OneTouchRepository;
 use Cartalyst\Sentinel\Laravel\Facades\Sentinel;
 use Cartalyst\Sentinel\Users\UserInterface;
 use Exception;
@@ -46,15 +46,26 @@ class AuthController extends Controller
     private $authy;
 
     /**
+     * @var OneTouchRepository
+     */
+    private $oneTouchRepository;
+
+    /**
      * @param Guard $auth
      * @param Registrar $registrar
      * @param Service $authy
+     * @param OneTouchRepository $oneTouchRepository
      */
-    public function __construct(Guard $auth, Registrar $registrar, Service $authy)
-    {
+    public function __construct(
+        Guard $auth,
+        Registrar $registrar,
+        Service $authy,
+        OneTouchRepository $oneTouchRepository
+    ) {
         $this->auth = $auth;
         $this->registrar = $registrar;
         $this->authy = $authy;
+        $this->oneTouchRepository = $oneTouchRepository;
     }
 
     /**
@@ -78,7 +89,7 @@ class AuthController extends Controller
         }
 
         $uuid = $this->authy->sendOneTouch($user->authy_id, 'Request to Login to Twilio demo app');
-        OneTouch::create(['uuid' => $uuid]);
+        $this->oneTouchRepository->create(['uuid' => $uuid]);
         Session::set('one_touch_uuid', $uuid);
 
         return response()->json(['status' => 'ok']);
