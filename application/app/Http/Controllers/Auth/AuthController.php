@@ -22,6 +22,7 @@ use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\View\View;
+use Throwable;
 
 /**
  * @author Robert Matuszewski <robmatu@gmail.com>
@@ -116,9 +117,16 @@ class AuthController extends Controller
         }
 
         $user = Sentinel::findById(Session::get('id'));
-        if (false === $this->authy->verifyToken($user->authy_id, $request->input('token'))) {
+
+        try {
+            if (false === $this->authy->verifyToken($user->authy_id, $request->input('token'))) {
+                return redirect()->route('auth.two.factor')->withErrors([
+                    'token' => 'The token you entered is incorrect',
+                ]);
+            }
+        } catch (Throwable $e) {
             return redirect()->route('auth.two.factor')->withErrors([
-                'token' => 'The token you entered is incorrect',
+                'token' => $e->getMessage(),
             ]);
         }
 

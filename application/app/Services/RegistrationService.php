@@ -8,8 +8,8 @@ use App\Model\RegistrationServiceInterface;
 use Cartalyst\Sentinel\Sentinel;
 use Cartalyst\Sentinel\Users\UserInterface;
 use Exception;
-use Illuminate\Support\Facades\Session;
 use LogicException;
+use Illuminate\Session\Store;
 
 /**
  * @author Robert Matuszewski <robmatu@gmail.com>
@@ -19,12 +19,12 @@ class RegistrationService implements RegistrationServiceInterface
     /**
      * @var Sentinel
      */
-    private $setinel;
+    private $sentinel;
 
     /**
-     * @var Session
+     * @var Store
      */
-    private $session;
+    private $sessionStore;
 
     /**
      * @var Authy
@@ -32,14 +32,14 @@ class RegistrationService implements RegistrationServiceInterface
     private $authyService;
 
     /**
-     * @param Sentinel $setinel
-     * @param Session $session
+     * @param Sentinel $sentinel
+     * @param Store $sessionStore
      * @param Authy $authyService
      */
-    public function __construct(Sentinel $setinel, Session $session, Authy $authyService)
+    public function __construct(Sentinel $sentinel, Store $sessionStore, Authy $authyService)
     {
-        $this->setinel = $setinel;
-        $this->session = $session;
+        $this->sentinel = $sentinel;
+        $this->sessionStore = $sessionStore;
         $this->authyService = $authyService;
     }
 
@@ -49,14 +49,14 @@ class RegistrationService implements RegistrationServiceInterface
      */
     public function register(array $userData): void
     {
-        $user = $this->setinel->registerAndActivate($userData);
+        $user = $this->sentinel->registerAndActivate($userData);
 
         if (false === $user instanceof UserInterface) {
             throw new LogicException();
         }
 
-        Session::set('password_validated', true);
-        Session::set('id', $user->id);
+        $this->sessionStore->set('password_validated', true);
+        $this->sessionStore->set('id', $user->id);
 
         $authyId = $this->authyService->register(
             $user->email,
@@ -65,11 +65,12 @@ class RegistrationService implements RegistrationServiceInterface
         );
         $user->updateAuthyId($authyId);
 
-        if ($this->authyService->verifyUserStatus($authyId)->registered) {
-            Session::flash('message', 'Open Authy app in your phone to see the verification code');
+        $authyData = $this->authyService->verifyUserStatus($authyId);
+        if ($authyData->registered) {
+            $this->sessionStore->flash('message', 'Open Authy app in your phone to see the verification code');
         } else {
             $this->authyService->sendToken($authyId);
-            Session::flash('message', 'You will receive an SMS with the verification code');
+            $this->sessionStore->flash('message', 'You will receive an SMS with the verification code');
         }
     }
 }

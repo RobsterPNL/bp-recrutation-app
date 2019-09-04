@@ -18,3 +18,10 @@
     ```
 1. Run `ngrok http 80` and copy "Forwarding" URL to https://www.twilio.com/console/authy/applications/246572/push-authentication push configuration.
 1. Once ngrok is running, open up your browser and go to your ngrok URL. It will look something like this: `http://9a159ccf.ngrok.io`
+
+
+## Run tests
+
+```bash
+$ ./vendor/bin/phpunit --testdox
+```
